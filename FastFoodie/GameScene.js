@@ -132,18 +132,41 @@ class GameScene extends Phaser.Scene {
         if(gameState.readyForNextOrder) {
             gameState.readyForNextOrder = false; //chef finish the order
             gameState.customerIsReady = false; // the customer is right in front of the server.
-            //STEP 37
+
             if(gameState.currentCustomer){
-               for(let i = 0; i < gameState.customersServedCount; i++){
+                console.log(`leftcount ${gameState.customersLeftCount}`);
+                console.log(`server count ${gameState.customersServedCount}`);
+                
+                //console.log(`previous customer exists`);
+                //moving served costumers
+                for(let i = 0; i < gameState.customersServedCount; i++){
                     this.tweens.add({
                         targets: gameState.currentCustomer,
                         duration: 750,
                         x: '-=300',
                         angle: 0,
-                        //onComplete: () => {gameState.currentCustomer.meterContainer.visible = false;}
+                        onStart: () => {
+                            gameState.customers.children.entries[i].meterContainer.visible = false;
+                        }
+                    });
+                    this.tweens.add({
+                        targets: gameState.customers.children.entries[i],
+                        duration: 750,
+                        x: '-=300',
+                        angle: 0
                     });
                 }
+                
             };
+
+            gameState.nextCustomer = gameState.customers.children.entries[gameState.customersServedCount + 1];
+
+            this.tweens.add({
+                targets: gameState.nextCustomer,
+                duration: 1500,
+                delay: 200,
+                x: '-=200'
+            });
 
             gameState.currentCustomer = gameState.customers.children.entries[gameState.customersServedCount];
             this.tweens.add({
@@ -155,10 +178,16 @@ class GameScene extends Phaser.Scene {
                 ease: 'Power2',
                 onComplete: () => {
                     gameState.customerIsReady = true;
-                    gameState.currentCustomer.meterContainer.visible = true;
+                    if (gameState.customersLeftCount != 0) {
+                        gameState.currentCustomer.meterContainer.visible = true;
+                    }
                 }
             });
+            //moving remaining costumers
+
         }
+
+
 
 
         if (Phaser.Input.Keyboard.JustDown(gameState.keys.A)) {
@@ -172,8 +201,6 @@ class GameScene extends Phaser.Scene {
             this.placeFood('Shake', 1);
             gameState.sfx.placeFood.play();
         } else if (Phaser.Input.Keyboard.JustDown(gameState.keys.Enter)){            
-            console.log(`ready for next order? ${gameState.readyForNextOrder}`);
-            console.log(`curstomer ready? ${gameState.customerIsReady}`);
             if(gameState.readyForNextOrder == false && gameState.customerIsReady === true){
                 this.moveCustomerLine();
                 this.updateCustomerCountText();
@@ -298,28 +325,27 @@ class GameScene extends Phaser.Scene {
     }
 
     moveCustomerLine(){
-        //gameState.currentMeal.fullnessValue, gameState.currentCustomer.fullnessCapacity){
+        this.updateStars(gameState.currentMeal.fullnessValue, gameState.currentCustomer.fullnessCapacity);
         gameState.currentMeal.clear(true);
         gameState.currentMeal.fullnessValue = 0;
         gameState.customersServedCount++;
-        //this.updateStars();
         gameState.readyForNextOrder = true;
 
     }
 
     drawStars(){
+        //console.log(`drawStars() was called, the starRating is ${gameState.starRating}`);
         for (let i = 0; i < gameState.starRating; i++) {
           let spacer = i * 50;
           gameState.starGroup.create(20 + spacer, 20, 'Star-full').setScale(0.6);
         }
     }
 
-    //is updating 100 even if it doent match
-
-
     updateStars(fullnessValue, fullnessCapacity){
+        gameState.starGroup.clear(true);
+        //console.log(`UPDATING starRating: ${gameState.starRating}`);
         if(fullnessValue === fullnessCapacity) {
-            gameState.currentCustomer.list[0].setTint(0x3ADB40);
+            gameState.currentCustomer.list[0].setTint(0x3ADB40); //index 0 refers to the customer sprite
             gameState.sfx.servingCorrect.play();
             gameState.score += 100;
             gameState.scoreText.setText(`${gameState.score}`);
@@ -329,6 +355,16 @@ class GameScene extends Phaser.Scene {
             if (gameState.starRating === 5){
                 gameState.sfx.fiveStars.play();
             }
+        } else if (fullnessValue < fullnessCapacity){
+            gameState.currentCustomer.list[0].setTint(0xDB533A);
+            gameState.sfx.servingIncorrect.play();
+            gameState.starRating -= 2;
+            //console.log(`starRating: ${gameState.starRating}`);
+        } else if (fullnessValue > fullnessCapacity){
+            gameState.currentCustomer.list[0].setTint(0xDB9B3A);
+            gameState.sfx.servingEmpty.play();
+            gameState.starRating -= 1;
         }
+        this.drawStars();
     }
   }
