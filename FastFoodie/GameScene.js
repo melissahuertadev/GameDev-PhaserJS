@@ -133,12 +133,8 @@ class GameScene extends Phaser.Scene {
             gameState.readyForNextOrder = false; //chef finish the order
             gameState.customerIsReady = false; // the customer is right in front of the server.
 
+            
             if(gameState.currentCustomer){
-                console.log(`leftcount ${gameState.customersLeftCount}`);
-                console.log(`server count ${gameState.customersServedCount}`);
-                
-                //console.log(`previous customer exists`);
-                //moving served costumers
                 for(let i = 0; i < gameState.customersServedCount; i++){
                     this.tweens.add({
                         targets: gameState.currentCustomer,
@@ -155,20 +151,26 @@ class GameScene extends Phaser.Scene {
                         x: '-=300',
                         angle: 0
                     });
-                }
-                
+                    
+                }         
             };
 
-            gameState.nextCustomer = gameState.customers.children.entries[gameState.customersServedCount + 1];
-
-            this.tweens.add({
-                targets: gameState.nextCustomer,
-                duration: 1500,
-                delay: 200,
-                x: '-=200'
-            });
 
             gameState.currentCustomer = gameState.customers.children.entries[gameState.customersServedCount];
+            gameState.nextCustomer = gameState.customers.children.entries[gameState.customersServedCount + 1];
+             //moving served costumers
+            if(gameState.nextCustomer){
+                for(let j = gameState.customersServedCount + 1; j < gameState.customersServedCount + gameState.customersLeftCount; j++){
+                    this.tweens.add({
+                        targets: gameState.customers.children.entries[j],
+                        duration: 1500,
+                        delay: 200,
+                        x: '-=200'
+                    }); 
+                }
+            };
+
+
             this.tweens.add({
                 targets: gameState.currentCustomer,
                 duration: 1000,
@@ -183,8 +185,6 @@ class GameScene extends Phaser.Scene {
                     }
                 }
             });
-            //moving remaining costumers
-
         }
 
 
