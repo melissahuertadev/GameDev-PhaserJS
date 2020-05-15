@@ -151,7 +151,6 @@ class GameScene extends Phaser.Scene {
                         x: '-=300',
                         angle: 0
                     });
-                    
                 }         
             };
 
@@ -187,9 +186,7 @@ class GameScene extends Phaser.Scene {
             });
         }
 
-
-
-
+        //check if the user pressed any key :3
         if (Phaser.Input.Keyboard.JustDown(gameState.keys.A)) {
             this.placeFood('Burger', 5);
             gameState.sfx.placeFood.play();
@@ -206,6 +203,22 @@ class GameScene extends Phaser.Scene {
                 this.updateCustomerCountText();
             }
         }
+
+       // console.log(`${gameState.currentWaveCount}`);
+
+        //changing to other scenes
+        /*
+        if (gameState.starRating <= 0) {
+            this.scene.stop('GameScene');
+            this.scene.start('LoseScene');
+            //Reset the game values when a new game starts.
+        }
+
+        if(gameState.currentWaveCount === 4 ){
+            this.scene.stop('GameScene');
+            this.scene.start('WinScene');
+        }
+        */
     }
     
   
@@ -240,7 +253,7 @@ class GameScene extends Phaser.Scene {
         while (customerContainer.fullnessCapacity === 12 || customerContainer.fullnessCapacity === 14) {
           customerContainer.fullnessCapacity = Math.ceil(Math.random() * 5) * gameState.totalWaveCount;
         }
-  
+
         // Edit the meterWidth
         let meterWidth = customerContainer.fullnessCapacity * 10;
         customerContainer.meterContainer = this.add.container(0, customer.y + (meterWidth / 2));
@@ -253,12 +266,53 @@ class GameScene extends Phaser.Scene {
         customerContainer.meterBase.setStrokeStyle(6, 0x707070);
         customerContainer.meterBase.angle = -90;
         customerContainer.meterContainer.add(customerContainer.meterBase);
-  
+        
         // Add timer countdown meter body
         customerContainer.timerMeterBody = this.add.rectangle(customerContainer.meterBase.x + 22, customer.y + 1, meterWidth + 4, 12, 0x3ADB40).setOrigin(0);
         customerContainer.timerMeterBody.angle = -90;
         customerContainer.meterContainer.add(customerContainer.timerMeterBody);
-  
+        
+        /*
+        using a timed meter that goes down to zero.
+
+        Draw a background for each customer’s timer meter under the fullness meter
+        Draw a bar to represent the timer
+        Create a timer once the customer has moved up to the chef.
+        Shrink the timer bar as the customer loses patience
+        Change the color of the timer as the customer is closer to leaving: green (0x3ADB40) when there’s lots of time, orange (0xFF9D00) at the 25% mark, and red (0xDB533A) if the timer is 75% complete.
+        Automatically run moveCustomerLine() when the timer reaches zero.
+        Remove the timer if the customer has been manually served before time runs out
+
+        // Add timer countdown meter body - step 45
+        let meterWidthHelper = meterWidth;
+        let color = 0x3ADB40;
+        
+        const fillMeterBody = () => {
+            meterWidthHelper--;
+
+            if (meterWidthHelper <= meterWidth * 0.75) {
+                color =  0xFF9D00;
+            }
+
+            if (meterWidthHelper <= meterWidth * 0.25) {
+                color =  0xDB533A;
+            }
+
+            if (meterWidthHelper === 0) {
+                this.moveCustomerLine();
+            }
+
+            customerContainer.timerMeterBody = this.add.rectangle(customerContainer.meterBase.x + 22, customer.y + 1, meterWidth + 4, 12, color).setOrigin(0);
+            customerContainer.timerMeterBody.angle = -90;
+            customerContainer.meterContainer.add(customerContainer.timerMeterBody);
+        }
+
+        gameState.patience = this.time.addEvent({
+            delay: 300,
+            callback: fillMeterBody,
+            loop: true
+        });
+*/
         // Create container for individual fullness blocks
         customerContainer.fullnessMeterBlocks = [];
   
@@ -320,6 +374,8 @@ class GameScene extends Phaser.Scene {
                     gameState.currentCustomer.fullnessMeterBlocks[i].setStrokeStyle(2, 0x2EB94E);
                 }
             }
+
+            
 
         }
     }
